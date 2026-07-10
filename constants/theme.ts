@@ -51,3 +51,5 @@ export const Fonts = Platform.select({
     mono: "SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace",
   },
 });
+
+export const API_URL = 'https://lottery-backend-ld1c.onrender.com';

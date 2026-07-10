@@ -1,0 +1,1 @@
+export const API_URL = 'https://lottery-backend-ld1c.onrender.com';
