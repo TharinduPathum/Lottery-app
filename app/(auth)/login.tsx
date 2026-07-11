@@ -4,7 +4,7 @@ import { StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator,
 import { useRouter } from 'expo-router';
 import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
-import { API_URL } from '@/constants/config';  
+import { API_URL } from '@/constants/theme';  
 
 export default function LoginScreen() {
   const [email, setEmail] = useState('');

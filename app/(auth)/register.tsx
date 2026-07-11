@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { StyleSheet, Text, TextInput, TouchableOpacity, View, ActivityIndicator, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import axios from 'axios';
-import { API_URL } from '@/constants/config';
+import { API_URL } from '@/constants/theme';
 
 export default function RegisterScreen() {
   const [name, setName] = useState('');
