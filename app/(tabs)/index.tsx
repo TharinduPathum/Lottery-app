@@ -1,22 +1,58 @@
-// app/(tabs)/index.tsx
-import React from 'react';
-import { StyleSheet, Text, View, ScrollView } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context'; 
+import React, { useState, useEffect } from 'react';
+import { StyleSheet, Text, View, ScrollView, ActivityIndicator } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import axios from 'axios';
 import { useAuth } from '../../context/AuthContext';
+import { API_URL } from '@/constants/theme'; 
 
 export default function HomeScreen() {
   const { user } = useAuth();
+  
+  const [latestResults, setLatestResults] = useState<number[]>([0, 0, 0, 0, 0]);
+  const [drawDate, setDrawDate] = useState<string>('തවම ඇදී නැත');
+  const [stats, setStats] = useState({ checked: 0, winners: 0, totalPayout: 0 });
+  const [loadingResults, setLoadingResults] = useState(true);
 
-  const latestResults = [47, 1, 9, 7, 48];
+  useEffect(() => {
+    const fetchLatestDraw = async () => {
+      try {
+        setLoadingResults(true);
+        const response = await axios.get(`${API_URL}/tickets/draw-results`);
+        
+        if (response.data && response.data.length > 0) {
+          const latestDraw = response.data[0]; 
+          
+          setLatestResults(latestDraw.winningNumbers || latestDraw.numbers || [0, 0, 0, 0, 0]);
+          
+          if (latestDraw.drawDate) {
+            const date = new Date(latestDraw.drawDate);
+            setDrawDate(date.toLocaleString('en-US', { hour12: true }));
+          }
+          
+          setStats({
+            checked: latestDraw.totalChecked || 57,
+            winners: latestDraw.totalWinners || 29,
+            totalPayout: latestDraw.totalPayout || 3400
+          });
+        }
+      } catch (error) {
+        console.log("Error fetching latest draw:", error);
+      } finally {
+        setLoadingResults(false);
+      }
+    };
+
+    fetchLatestDraw();
+  }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <ScrollView contentContainerStyle={styles.container}>
         
         <View style={styles.headerCard}>
-          <Text style={styles.welcomeText}>ආයුබෝවන්, {user?.name || 'Anura Dissanayake'}</Text>
+          <Text style={styles.welcomeText}>ආයුබෝවන්, {user?.name || 'User'}</Text>
           <View style={styles.walletBadge}>
-            <Text style={styles.walletText}>💰 Wallet Balance: Rs. {user?.walletBalance ?? '8,500'}/-</Text>
+            <Text style={styles.walletText}>💰 Wallet Balance: Rs. {user?.walletBalance ?? '0'}/-</Text>
           </View>
         </View>
 
@@ -35,20 +71,24 @@ export default function HomeScreen() {
 
         <View style={styles.resultsCard}>
           <Text style={styles.resultsHeader}>LATEST DRAW RESULTS HISTORY</Text>
-          <Text style={styles.resultsDate}>📅 අවසන් වරට ඇදුණේ: 7/7/2026, 12:37 PM</Text>
+          <Text style={styles.resultsDate}>📅 අවසන් වරට ඇදුණේ: {drawDate}</Text>
           
-          <View style={styles.ballContainer}>
-            {latestResults.map((num, index) => (
-              <View key={index} style={styles.ball}>
-                <Text style={styles.ballText}>{num}</Text>
-              </View>
-            ))}
-          </View>
+          {loadingResults ? (
+            <ActivityIndicator size="small" color="#2F80ED" style={{ marginVertical: 12 }} />
+          ) : (
+            <View style={styles.ballContainer}>
+              {latestResults.map((num, index) => (
+                <View key={index} style={styles.ball}>
+                  <Text style={styles.ballText}>{num}</Text>
+                </View>
+              ))}
+            </View>
+          )}
 
           <View style={styles.statsRow}>
-            <Text style={styles.statsText}>Checked: <Text style={{fontWeight:'bold'}}>57</Text></Text>
-            <Text style={styles.statsText}>Winners: <Text style={{fontWeight:'bold', color: '#FF7A00'}}>29</Text></Text>
-            <Text style={[styles.statsText, {color: '#4CD964'}]}>Total Payout: Rs. 3400.00</Text>
+            <Text style={styles.statsText}>Checked: <Text style={{fontWeight:'bold'}}>{stats.checked}</Text></Text>
+            <Text style={styles.statsText}>Winners: <Text style={{fontWeight:'bold', color: '#FF7A00'}}>{stats.winners}</Text></Text>
+            <Text style={[styles.statsText, {color: '#4CD964'}]}>Total Payout: Rs. {stats.totalPayout}.00</Text>
           </View>
         </View>
 
@@ -91,9 +131,9 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   noticeBox: {
-    backgroundColor: '#FFF9E6', 
+    backgroundColor: '#FFF9E6',
     borderWidth: 1,
-    borderColor: '#FFB800', 
+    borderColor: '#FFB800',
     borderRadius: 12,
     padding: 16,
     marginBottom: 25,
